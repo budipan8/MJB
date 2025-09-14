@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Daftar Pesanan Maju Jaya Bakery Sragen + Auto Zoom</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f1f1f1;
+      padding: 10px;
+      overflow: hidden;
+    }
+    .container {
+      max-width: 100vw;
+      max-height: 98vh;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: white;
+      padding: 10px;
+      box-sizing: border-box;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin: 0 0 8px 0;
+      color: #2c3e50;
+      font-size: 18px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      overflow-y: hidden;
+      flex-grow: 1;
+      padding-right: 5px;
+    }
+    .card {
+      background: #e9f0ff;
+      border-radius: 6px;
+      padding: 8px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      border: 1px solid #c1d1ff;
+    }
+    .card h3 {
+      margin: 0 0 6px 0;
+      font-size: 14px;
+      text-align: center;
+      background-color: #2c3e50;
+      color: white;
+      padding: 4px 0;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      flex-grow: 1;
+      overflow: hidden;
+      table-layout: fixed;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 4px 6px;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: var(--font-size, 10px);
+    }
+    th {
+      background-color: #2c3e50;
+      color: white;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .button-container {
+      margin-top: 6px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    button {
+      margin: 3px 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #1a2738;
+    }
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Daftar Pesanan Maju jaya bakery Sragen</h2>
+    <div class="grid" id="gridKelompok"></div>
+
+    <div class="button-container">
+      <button onclick="window.location.href='index.html'">Tambah Pesanan</button>
+      <button onclick="resetPesanan()">🗑️ Hapus Semua</button>
+      <button onclick="exportCSV()">📥 Export ke Excel</button>
+    </div>
+  </div>
+
+  <script>
+    const dataPesanan = JSON.parse(localStorage.getItem('pesanan')) || [];
+    const grid = document.getElementById('gridKelompok');
+
+    function kelompokkanPerNama(data) {
+      return data.reduce((acc, pesanan) => {
+        if (!acc[pesanan.nama]) acc[pesanan.nama] = [];
+        acc[pesanan.nama].push(pesanan);
+        return acc;
+      }, {});
+    }
+
+    function tampilkanGrid(data) {
+      grid.innerHTML = "";
+      if (data.length === 0) {
+        grid.innerHTML = '<p style="grid-column: span 2; text-align:center;">Belum ada pesanan.</p>';
+        return;
+      }
+      const kelompok = kelompokkanPerNama(data);
+
+      for (const namaPemesan in kelompok) {
+        const card = document.createElement('div');
+        card.classList.add('card');
+
+        const judul = document.createElement('h3');
+        judul.textContent = namaPemesan;
+        card.appendChild(judul);
+
+        const table = document.createElement('table');
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th style="width:5%;">No</th>
+              <th style="width:40%;">Jenis Roti</th>
+              <th style="width:15%;">Jumlah</th>
+              <th style="width:40%;">Tujuan</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+        const tbody = table.querySelector('tbody');
+        kelompok[namaPemesan].forEach((pesanan, idx) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td>${pesanan.jenis}</td>
+            <td>${pesanan.jumlah}</td>
+            <td>${pesanan.status}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        card.appendChild(table);
+        grid.appendChild(card);
+      }
+
+      // Setelah render, jalankan auto zoom
+      autoZoomFont();
+    }
+
+    function resetPesanan() {
+      if (confirm("Yakin ingin menghapus semua pesanan?")) {
+        localStorage.removeItem('pesanan');
+        window.location.reload();
+      }
+    }
+
+    function exportCSV() {
+      if (dataPesanan.length === 0) {
+        alert("Tidak ada data untuk diexport.");
+        return;
+      }
+
+      let csv = "No,Nama Pemesan,Jenis Roti,Jumlah,Tujuan,Waktu Pesan\n";
+      dataPesanan.forEach((p, i) => {
+        csv += `${i + 1},"${p.nama}","${p.jenis}",${p.jumlah},"${p.status}","${p.waktu}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "daftar-pesanan.csv";
+      link.click();
+    }
+
+    // Fungsi auto zoom font supaya semua muat di container grid tanpa scroll
+    function autoZoomFont() {
+      const container = document.querySelector('.grid');
+      const cards = container.querySelectorAll('.card table');
+      if (cards.length === 0) return;
+
+      let minFont = 6; // px minimum font size
+      let maxFont = 12; // px maximum font size
+      let fontSize = maxFont;
+
+      // Fungsi cek overflow
+      function isOverflowing() {
+        return container.scrollHeight > container.clientHeight || container.scrollWidth > container.clientWidth;
+      }
+
+      // Turunkan font sampai muat tanpa scroll atau sampai minFont
+      while (fontSize >= minFont) {
+        cards.forEach(table => {
+          table.style.setProperty('--font-size', fontSize + 'px');
+        });
+        if (!isOverflowing()) break;
+        fontSize -= 0.5;
+      }
+
+      // Jika sudah di minFont tapi masih overflow, font tetap di minFont
+      cards.forEach(table => {
+        table.style.setProperty('--font-size', fontSize + 'px');
+      });
+    }
+
+    // Tampilkan data dan jalankan auto zoom
+    tampilkanGrid(dataPesanan);
+
+    // Jalankan ulang auto zoom saat resize layar
+    window.addEventListener('resize', () => {
+      autoZoomFont();
+    });
+  </script>
+</body>
+</html>
+<script>
+  setTimeout(function() {
+    location.reload();
+  }, 10000); // 10 detik
+</script>
+

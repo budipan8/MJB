@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Form Input Pesanan</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+    }
+    .form-container {
+      background: white;
+      padding: 20px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+    select, input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 4px;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #1a2738;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Pesanan Maju Jaya Bakery Sragen</h2>
+    <form id="formPesan">
+      <label for="nama">Nama Pemesan</label>
+      <select name="nama" id="nama" required>
+        <option value="" disabled selected>-- Pilih Nama Pemesan --</option>
+        <option value="TARMIN">TARMIN</option>
+        <option value="PARMAN">PARMAN</option>
+        <option value="KANDAR">KANDAR</option>
+        <option value="KENUL">KENUL</option>
+        <option value="KENTIT">KENTIT</option>
+        <option value="ROHMAT">ROHMAT</option>
+        <option value="ALI">ALI</option>
+        <option value="NUR">NUR</option>
+      </select>
+
+      <label for="jenis">Jenis Roti</label>
+      <select name="jenis" id="jenis" required>
+        <option value="" disabled selected>-- Pilih Jenis Roti --</option>
+        <option value="MOLEN">MOLEN</option>
+        <option value="RPS">RPS</option>
+        <option value="NANAS">NANAS</option>
+        <option value="COKELAT">COKELAT</option>
+        <option value="DONAT">DONAT</option>
+        <option value="KELAPA">KELAPA</option>
+        <option value="PIA">PIA</option>
+        <option value="GORENG CAMPUR">GORENG CAMPUR</option>
+      </select>
+
+      <label for="jumlah">Jumlah</label>
+      <input type="number" name="jumlah" id="jumlah" placeholder="Jumlah pesanan" min="1" required />
+
+      <label for="status">Status / Tujuan</label>
+      <select name="status" id="status" required>
+        <option value="" disabled selected>-- Pilih Status / Tujuan --</option>
+        <option value="PASAR">PASAR</option>
+        <option value="JOGJA">JOGJA</option>
+        <option value="PURWODADI">PURWODADI</option>
+        <option value="RUMAH">RUMAH</option>
+      </select>
+
+      <button type="submit">Kirim Pesanan</button>
+    </form>
+  </div>
+
+  <script>
+    // Fungsi generate ID unik sederhana
+    function generateId() {
+      return '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    const form = document.getElementById('formPesan');
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const nama = form.nama.value;
+      const jenis = form.jenis.value;
+      const jumlah = parseInt(form.jumlah.value);
+      const status = form.status.value;
+      const tanggalPesan = new Date().toISOString();
+
+      const pesananBaru = {
+        id: generateId(),
+        nama,
+        jenis,
+        jumlah,
+        status,
+        tanggalPesan
+      };
+
+      // Ambil data lama dari localStorage
+      let dataPesanan = JSON.parse(localStorage.getItem('pesanan')) || [];
+
+      // Tambah data baru
+      dataPesanan.push(pesananBaru);
+
+      // Simpan ulang ke localStorage
+      localStorage.setItem('pesanan', JSON.stringify(dataPesanan));
+
+      alert('Pesanan terkirim!');
+
+      form.reset();
+      form.nama.focus();
+    });
+  </script>
+</body>
+</html>
